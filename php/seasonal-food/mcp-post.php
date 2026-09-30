@@ -1,11 +1,20 @@
 <?php
 /**
- * 季節のフルーツ・野菜を返す PHP MCP サーバー (STDIO版)
+ * 季節のフルーツ・野菜を返す PHP MCP サーバー (HTTP/POST版)
  */
 
-// エラー出力が stdout に混ざると JSON-RPC 通信が壊れるため画面表示をオフ
+// エラー出力がレスポンスに混ざると JSON-RPC 通信が壊れるため画面表示をオフ
 ini_set('display_errors', '0');
 error_reporting(E_ALL);
+
+header('Content-Type: application/json');
+
+// MCP (Streamable HTTP) は POST のみ受け付ける
+if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+    http_response_code(405);
+    header('Allow: POST');
+    exit;
+}
 
 // データ定義
 $fruits = [
@@ -39,17 +48,22 @@ function normalizeSeason($season) {
  * JSON-RPC レスポンス送信関数
  */
 function sendResponse($response) {
-    echo json_encode($response, JSON_UNESCAPED_UNICODE) . "\n";
-    fflush(STDOUT);
+    echo json_encode($response, JSON_UNESCAPED_UNICODE);
+    exit;
 }
 
-// 標準入力 (stdin) から JSON-RPC リクエストを 1 行ずつ読み込むループ
-while ($line = file_get_contents('php://input')) {
-    $line = trim($line);
-    if (empty($line)) continue;
-
-    $request = json_decode($line, true);
-    if (!$request || !isset($request['method'])) continue;
+// リクエストボディ (JSON-RPC) を 1 回だけ読み込んで処理する
+{
+    $body = trim(file_get_contents('php://input'));
+    $request = json_decode($body, true);
+    if (!$request || !isset($request['method'])) {
+        http_response_code(400);
+        sendResponse([
+            'jsonrpc' => '2.0',
+            'id' => null,
+            'error' => ['code' => -32700, 'message' => 'Parse error']
+        ]);
+    }
 
     $method = $request['method'];
     $id = $request['id'] ?? null;
@@ -70,12 +84,12 @@ while ($line = file_get_contents('php://input')) {
                 ]
             ]
         ]);
-        continue;
     }
 
     // 2. 初期化完了通知 (notifications/initialized)
     if ($method === 'notifications/initialized') {
-        continue;
+        http_response_code(202);
+        exit;
     }
 
     // 3. 利用可能なツール一覧の返却 (tools/list)
@@ -116,7 +130,6 @@ while ($line = file_get_contents('php://input')) {
                 ]
             ]
         ]);
-        continue;
     }
 
     // 4. ツール実行処理 (tools/call)
@@ -158,6 +171,12 @@ while ($line = file_get_contents('php://input')) {
                 ]
             ]);
         }
-        continue;
     }
+
+    // 未対応メソッド
+    sendResponse([
+        'jsonrpc' => '2.0',
+        'id' => $id,
+        'error' => ['code' => -32601, 'message' => 'Method not found']
+    ]);
 }

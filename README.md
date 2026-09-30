@@ -9,7 +9,7 @@ PHP で MCP (Model Context Protocol) サーバーを自作して学ぶための�
 php/
 ├── seasonal-food/          # 季節のフルーツ・野菜を返すサンプル
 │   ├── mcp-stdin.php       #   STDIO 版
-│   └── mcp-post.php        #   HTTP(POST) 版の試作
+│   └── mcp-post.php        #   HTTP(POST) 版
 └── wp-blog-usr/            # WordPress REST API から記事・ユーザーを取得するサンプル
     ├── wp-mcp-common.php   #   共通処理 (.env 読込・API 呼び出し・MCP ハンドラ)
     ├── wp-mcp-stdin.php    #   STDIO 版
@@ -86,7 +86,7 @@ claude mcp add wp-blog-usr -- php /絶対パス/php/wp-blog-usr/wp-mcp-stdin.php
 ## 既知の制限
 
 - 学習用の最小実装のため、MCP 仕様の全機能には対応していません (対応: `initialize` / `tools/list` / `tools/call`)。
-- `seasonal-food/mcp-post.php` は `mcp-stdin.php` の入力元を `php://input` に変えただけの試作で、ループ構造のため HTTP サーバー上では正しく動作しません。
+- HTTP(POST) 版は認証・セッション管理・SSE ストリーミングに対応していません (1 リクエスト 1 レスポンスのみ)。
 
 ## ライセンス
 
