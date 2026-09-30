@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "seasonal-food": {
+      "command": "php",
+      "args": [
+        "php/seasonal-food/mcp-stdin.php"
+      ]
+    },
+    "wp-blog-usr": {
+      "command": "php",
+      "args": [
+        "php/wp-blog-usr/wp-mcp-stdin.php"
+      ]
+    }
+  }
+}
