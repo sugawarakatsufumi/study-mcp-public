@@ -39,7 +39,25 @@ printf '%s\n' \
   | php php/seasonal-food/mcp-stdin.php
 ```
 
+### HTTP(POST) 版の動作確認
+
+```bash
+php -S 127.0.0.1:8080 -t php/seasonal-food
+```
+
+別のターミナルから:
+
+```bash
+curl -s 127.0.0.1:8080/mcp-post.php -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
+curl -s 127.0.0.1:8080/mcp-post.php -d '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"get_seasonal_fruit","arguments":{"season":"秋"}}}'
+```
+
 ### Claude Code に登録する
+
+リポジトリ直下の `.mcp.json` と `.claude/settings.json` により、**クローンしたリポジトリ直下で Claude Code を起動するだけで** `seasonal-food` と `wp-blog-usr` が自動的に登録されます (`wp-blog-usr` は後述の `.env` 設定が必要です)。
+`.mcp.json` は相対パスで書かれているため、サブディレクトリから起動するとファイルが見つからず失敗します。必ずリポジトリ直下で起動してください。
+
+手動で登録する場合:
 
 ```bash
 claude mcp add seasonal-food -- php /絶対パス/php/seasonal-food/mcp-stdin.php
@@ -71,6 +89,8 @@ WP_APP_PASSWORD=xxxx xxxx xxxx xxxx xxxx xxxx
 Application Password は WordPress 管理画面の「ユーザー → プロフィール → アプリケーションパスワード」で発行します。
 
 ### Claude Code に登録する
+
+`.mcp.json` による自動登録の対象です。手動で登録する場合:
 
 ```bash
 claude mcp add wp-blog-usr -- php /絶対パス/php/wp-blog-usr/wp-mcp-stdin.php
